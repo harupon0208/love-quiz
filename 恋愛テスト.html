@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>恋愛偏差値チェック</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background: linear-gradient(135deg, #fff0f5 0%, #ffe4ec 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px 16px 40px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    /* ── ヘッダー ── */
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 1.4rem;
+      color: #c0346a;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .header p {
+      font-size: 0.82rem;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    /* ── カード ── */
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      box-shadow: 0 4px 24px rgba(192, 52, 106, 0.12);
+    }
+
+    /* ── 進捗バー ── */
+    .progress-wrap {
+      margin-bottom: 20px;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: #bbb;
+      margin-bottom: 6px;
+    }
+    .progress-bar {
+      height: 6px;
+      background: #f0d6e0;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #e87aaa, #c0346a);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    /* ── 問題 ── */
+    .q-type {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+    .q-type.choice { background: #ffe4ec; color: #c0346a; }
+    .q-type.essay  { background: #e4eeff; color: #3468c0; }
+
+    .q-number {
+      font-size: 0.78rem;
+      color: #ccc;
+      margin-bottom: 4px;
+    }
+    .q-text {
+      font-size: 1rem;
+      color: #333;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+    }
+
+    /* ── 三択 ── */
+    .choices { display: flex; flex-direction: column; gap: 10px; }
+
+    .choice-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 2px solid #f0d6e0;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      font-size: 0.92rem;
+      color: #444;
+      line-height: 1.5;
+    }
+    .choice-label input[type="radio"] { display: none; }
+    .radio-circle {
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      border: 2px solid #e0b0c0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .radio-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #c0346a;
+      display: none;
+    }
+    input[type="radio"]:checked + .radio-circle {
+      border-color: #c0346a;
+      background: #fff0f5;
+    }
+    input[type="radio"]:checked + .radio-circle .radio-dot { display: block; }
+    .choice-label:has(input:checked) {
+      border-color: #c0346a;
+      background: #fff8fb;
+    }
+
+    /* ── 記述式 ── */
+    .essay-note {
+      font-size: 0.78rem;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      border: 2px solid #f0d6e0;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      color: #333;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.6;
+    }
+    textarea:focus { border-color: #c0346a; }
+
+    /* ── ボタン ── */
+    .btn-wrap { margin-top: 24px; display: flex; gap: 10px; }
+
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      min-height: 50px;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, #e87aaa, #c0346a);
+      color: #fff;
+    }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #888;
+    }
+
+    /* ── 結果画面 ── */
+    .result-card { display: none; }
+
+    .score-block {
+      text-align: center;
+      padding: 20px 0 24px;
+      border-bottom: 1px solid #f0d6e0;
+      margin-bottom: 24px;
+    }
+    .score-block .label {
+      font-size: 0.82rem;
+      color: #bbb;
+      margin-bottom: 6px;
+    }
+    .score-num {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: #c0346a;
+      line-height: 1;
+    }
+    .score-num span { font-size: 1rem; color: #bbb; font-weight: 400; }
+    .score-bar-wrap { margin: 14px auto 0; max-width: 240px; }
+    .score-bar {
+      height: 10px;
+      background: #f0d6e0;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #e87aaa, #c0346a);
+      border-radius: 99px;
+      transition: width 1s ease;
+    }
+
+    .result-section-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #c0346a;
+      margin-bottom: 14px;
+    }
+
+    .essay-result-item {
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #f8e8ef;
+    }
+    .essay-result-item:last-child { border-bottom: none; }
+    .essay-q {
+      font-size: 0.78rem;
+      color: #bbb;
+      margin-bottom: 4px;
+    }
+    .essay-q-text {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .essay-ans {
+      font-size: 0.92rem;
+      color: #333;
+      background: #fff8fb;
+      border-radius: 10px;
+      padding: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      min-height: 40px;
+    }
+    .essay-ans.empty { color: #ccc; font-style: italic; }
+
+    .manual-score-wrap {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 2px solid #f0d6e0;
+    }
+    .manual-score-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 14px;
+    }
+    .manual-score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .manual-score-row label {
+      font-size: 0.85rem;
+      color: #666;
+      flex: 1;
+    }
+    .manual-score-row input[type="number"] {
+      width: 70px;
+      padding: 8px;
+      border: 2px solid #f0d6e0;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      text-align: center;
+      font-family: inherit;
+      outline: none;
+    }
+    .manual-score-row input[type="number"]:focus { border-color: #c0346a; }
+
+    .total-score-wrap {
+      margin-top: 20px;
+      padding: 18px;
+      background: linear-gradient(135deg, #fff0f5, #ffe4ec);
+      border-radius: 14px;
+      text-align: center;
+    }
+    .total-label { font-size: 0.82rem; color: #c0346a; margin-bottom: 6px; }
+    .total-num {
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: #c0346a;
+      line-height: 1;
+    }
+    .total-num span { font-size: 1rem; font-weight: 400; }
+    .deviation-label {
+      font-size: 0.85rem;
+      color: #e87aaa;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    .btn-retry {
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    /* ── 表紙画面 ── */
+    .cover-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px 28px 36px;
+      box-shadow: 0 4px 32px rgba(192, 52, 106, 0.15);
+      text-align: center;
+    }
+
+    .cover-deco {
+      font-size: 3.4rem;
+      line-height: 1;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      animation: heartbeat 2s ease-in-out infinite;
+    }
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      30% { transform: scale(1.08); }
+      60% { transform: scale(0.96); }
+    }
+
+    .cover-title {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #c0346a;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .cover-subtitle {
+      font-size: 0.85rem;
+      color: #bbb;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .cover-info {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .cover-chip {
+      background: #fff0f5;
+      color: #c0346a;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 99px;
+      border: 1.5px solid #f0c0d4;
+    }
+
+    .cover-rule {
+      text-align: left;
+      background: #fffafc;
+      border: 1.5px solid #f0d6e0;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 28px;
+    }
+    .cover-rule-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #c0346a;
+      margin-bottom: 10px;
+    }
+    .cover-rule ul {
+      list-style: none;
+      padding: 0;
+    }
+    .cover-rule ul li {
+      font-size: 0.82rem;
+      color: #666;
+      padding: 4px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.5;
+    }
+    .cover-rule ul li::before {
+      content: '・';
+      color: #e87aaa;
+      flex-shrink: 0;
+    }
+
+    .btn-start {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #e87aaa, #c0346a);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 16px rgba(192, 52, 106, 0.3);
+    }
+    .btn-start:hover { box-shadow: 0 6px 22px rgba(192, 52, 106, 0.4); }
+    .btn-start:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>恋愛偏差値チェック</h1>
+    <p>全15問・正直に答えてね</p>
+  </div>
+
+  <!-- 表紙カード -->
+  <div class="cover-card" id="coverCard">
+    <div class="cover-deco">
+      <span>&#10084;&#65039;</span><span>&#128149;</span><span>&#10084;&#65039;</span>
+    </div>
+    <div class="cover-title">恋愛偏差値チェック</div>
+    <div class="cover-subtitle">あなたの恋愛センスを<br>シチュエーション問題で測定します</div>
+
+    <div class="cover-info">
+      <span class="cover-chip">全15問</span>
+      <span class="cover-chip">三択10問</span>
+      <span class="cover-chip">記述5問</span>
+      <span class="cover-chip">100点満点</span>
+    </div>
+
+    <div class="cover-rule">
+      <div class="cover-rule-title">ルール</div>
+      <ul>
+        <li>各シチュエーションに正直に答えてください</li>
+        <li>三択問題（Q1〜Q10）は自動で採点されます</li>
+        <li>記述式問題（Q11〜Q15）は出題者が採点します</li>
+        <li>途中で戻って回答を変えることもできます</li>
+      </ul>
+    </div>
+
+    <button class="btn-start" onclick="startQuiz()">診断スタート</button>
+  </div>
+
+  <!-- 問題カード -->
+  <div class="card" id="quizCard" style="display:none">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="progressText">Q1 / 15</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div id="qTypeTag" class="q-type choice">三択</div>
+    <div class="q-number" id="qNumber">Q1</div>
+    <div class="q-text" id="qText"></div>
+    <div id="choicesWrap" class="choices"></div>
+    <div id="essayWrap" style="display:none">
+      <p class="essay-note">※ 自由に記述してください（採点は出題者が行います）</p>
+      <textarea id="essayInput" placeholder="ここに書いてください…"></textarea>
+    </div>
+
+    <div class="btn-wrap">
+      <button class="btn btn-secondary" id="btnPrev" onclick="prevQ()">← 戻る</button>
+      <button class="btn btn-primary" id="btnNext" onclick="nextQ()">次の問題 →</button>
+    </div>
+  </div>
+
+  <!-- 結果カード -->
+  <div class="card result-card" id="resultCard">
+    <div class="score-block">
+      <div class="label">三択パート（自動採点）</div>
+      <div class="score-num" id="choiceScore">0<span> / 50点</span></div>
+      <div class="score-bar-wrap">
+        <div class="score-bar">
+          <div class="score-bar-fill" id="choiceBar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-section-title">記述式パートの回答</div>
+    <div id="essayResultList"></div>
+
+    <div class="manual-score-wrap">
+      <div class="manual-score-title">記述式の採点を入力（各10点満点）</div>
+      <div id="manualScoreRows"></div>
+
+      <div class="total-score-wrap">
+        <div class="total-label">合計スコア</div>
+        <div class="total-num" id="totalScore">— <span>/ 100点</span></div>
+        <div class="deviation-label" id="deviationLabel"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button class="btn btn-secondary" style="flex:1" onclick="goHome()">ホームに戻る</button>
+      <button class="btn btn-primary" style="flex:1" onclick="retry()">もう一度やる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ────────────────────────────────────────────────────
+  //  問題データ
+  // ────────────────────────────────────────────────────
+  const questions = [
+    {
+      type: "choice",
+      text: "付き合って3ヶ月の恋人から突然\n「少し距離を置きたい」と言われた。\nあなたはどうする？",
+      options: [
+        { text: "「なぜ？理由をちゃんと教えて」と原因を問い詰める", score: 1 },
+        { text: "「わかった。でも心配だから、少しだけ話してほしい」と伝える", score: 4 },
+        { text: "「そっか」と一言だけ返して、静かに引く", score: 2 },
+      ]
+    },
+    {
+      type: "choice",
+      text: "恋人のスマホに異性からのLINEが\n最近やたら多い。あなたはどうする？",
+      options: [
+        { text: "恋人がいない隙にこっそりスマホを確認する", score: 1 },
+        { text: "「最近誰かとよく連絡取ってるの？」と自然な流れで聞いてみる", score: 4 },
+        { text: "見て見ぬふりをして、モヤモヤを一人で抱え込む", score: 2 },
+      ]
+    },
+    {
+      type: "choice",
+      text: "デートの約束を当日「仕事が入った」と\nキャンセルされた。これで3回目。",
+      options: [
+        { text: "「もういい」と返信してそのまま音信不通にする", score: 1 },
+        { text: "「3回目だから正直つらい。ちゃんと話し合いたい」と伝える", score: 4 },
+        { text: "「大丈夫、また今度ね」と合わせるが、内心限界に近い", score: 2 },
+      ]
+    },
+    {
+      type: "choice",
+      text: "好きな人がいるが、どうやらその人は\nあなたの親友と両思いのようだ。",
+      options: [
+        { text: "親友に「実は私も好きだった」と打ち明ける", score: 3 },
+        { text: "自分の気持ちには蓋をして、二人をそっと応援する", score: 6 },
+        { text: "親友に気づかれないよう、こっそりアプローチを続ける", score: 1 },
+      ]
+    },
+    {
+      type: "choice",
+      text: "恋人と言い争いになった。\n自分は悪くないと思っているが、\n恋人は黙り込んでしまった。",
+      options: [
+        { text: "「なんで黙ってるの、話してよ」と詰め寄る", score: 1 },
+        { text: "「頭冷やしてから話そう。落ち着いたら連絡して」と一旦引く", score: 6 },
+        { text: "自分から先に謝って、とにかく雰囲気を戻そうとする", score: 3 },
+      ]
+    },
+    {
+      type: "choice",
+      text: "恋人が友達への愚痴を30分以上\n話し続けている。内心かなりうんざりしてきた。",
+      options: [
+        { text: "「その話さっきも聞いたよ」とはっきり伝える", score: 2 },
+        { text: "最後まで聞いた後、「大変だったね。気分転換しない？」と提案する", score: 4 },
+        { text: "相槌だけ打ちながら、心はすでに別のことを考えている", score: 1 },
+      ]
+    },
+    {
+      type: "choice",
+      text: "付き合う前の段階で、相手から\n「実は他にも気になる人がいる」と告白された。",
+      options: [
+        { text: "「じゃあ私を選んでもらえるよう頑張る」と競争に加わる", score: 3 },
+        { text: "「正直に言ってくれてありがとう。でも私はそういう状況は無理かな」と伝える", score: 6 },
+        { text: "傷ついたが何も言えず、曖昧な関係をずるずると続ける", score: 1 },
+      ]
+    },
+    {
+      type: "choice",
+      text: "恋人との会話に、元カノ／元カレの話が\n頻繁に出てくる。",
+      options: [
+        { text: "「元カノ／元カレの話は正直しんどい、やめてほしい」とはっきり伝える", score: 6 },
+        { text: "内心嫉妬しながら、何も言わず聞き続ける", score: 1 },
+        { text: "「なんか、まだ引きずってる？」と遠回しに探りを入れる", score: 3 },
+      ]
+    },
+    {
+      type: "choice",
+      text: "遠距離恋愛中の恋人への\n既読スルーが最近増えてきた。",
+      options: [
+        { text: "「なんで返事してくれないの？」と立て続けにメッセージを送る", score: 1 },
+        { text: "「最近忙しい？元気にしてる？」と一言だけ送って、様子を見る", score: 4 },
+        { text: "こちらからの連絡をやめて、相手の出方をひたすら待つ", score: 2 },
+      ]
+    },
+    {
+      type: "choice",
+      text: "恋人から「もっと一人の時間が欲しい」\nと言われた。",
+      options: [
+        { text: "「私のことが嫌になったの？」と不安をそのままぶつける", score: 1 },
+        { text: "「わかった。どのくらい距離を置けばいい？一緒に決めよう」と話し合う", score: 6 },
+        { text: "何も言わずにそっと距離を置いてみる", score: 3 },
+      ]
+    },
+    {
+      type: "essay",
+      text: "3年付き合った恋人から突然「好きな人ができた」と告げられました。\nあなたはその場でどんな言葉をかけますか？"
+    },
+    {
+      type: "essay",
+      text: "大好きな人がいますが、その人はあなたを「大切な友達」だと思っています。\n友達関係を壊さずに気持ちを伝えるとしたら、どんなタイミング・方法を選びますか？"
+    },
+    {
+      type: "essay",
+      text: "付き合っていくうちに恋人との価値観のズレに気づき始めました\n（例：結婚観・お金の使い方・家族との距離感）。\nあなたはどう向き合いますか？"
+    },
+    {
+      type: "essay",
+      text: "「好き」という感情と「依存」の違いは何だと思いますか？\n自分自身の恋愛経験や価値観を踏まえて答えてください。"
+    },
+    {
+      type: "essay",
+      text: "あなたにとって「理想の別れ方」はどんなものですか？\nまた、それはなぜですか？"
+    },
+  ];
+
+  // ────────────────────────────────────────────────────
+  //  状態
+  // ────────────────────────────────────────────────────
+  let current = 0;
+  let answers = Array(questions.length).fill(null); // choice: score数値, essay: 文字列
+
+  // ────────────────────────────────────────────────────
+  //  レンダリング
+  // ────────────────────────────────────────────────────
+  function render() {
+    const q = questions[current];
+    const total = questions.length;
+
+    // 進捗
+    document.getElementById('progressText').textContent = `Q${current + 1} / ${total}`;
+    const pct = Math.round((current / total) * 100);
+    document.getElementById('progressPct').textContent = pct + '%';
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    // タグ・番号・問題文
+    const tag = document.getElementById('qTypeTag');
+    tag.textContent = q.type === 'choice' ? '三択' : '記述式';
+    tag.className = 'q-type ' + (q.type === 'choice' ? 'choice' : 'essay');
+    document.getElementById('qNumber').textContent = `Q${current + 1}`;
+    document.getElementById('qText').textContent = q.text;
+
+    // 三択 / 記述式 切り替え
+    const choicesWrap = document.getElementById('choicesWrap');
+    const essayWrap   = document.getElementById('essayWrap');
+    const essayInput  = document.getElementById('essayInput');
+
+    if (q.type === 'choice') {
+      essayWrap.style.display = 'none';
+      choicesWrap.style.display = 'flex';
+      choicesWrap.innerHTML = q.options.map((opt, i) => `
+        <label class="choice-label">
+          <input type="radio" name="choice" value="${opt.score}"
+            ${answers[current] === opt.score ? 'checked' : ''}
+            onchange="onChoiceChange(${opt.score})">
+          <span class="radio-circle"><span class="radio-dot"></span></span>
+          <span>${opt.text}</span>
+        </label>
+      `).join('');
+    } else {
+      choicesWrap.style.display = 'none';
+      essayWrap.style.display = 'block';
+      essayInput.value = answers[current] !== null ? answers[current] : '';
+    }
+
+    // ボタン
+    document.getElementById('btnPrev').style.display = current === 0 ? 'none' : '';
+    const isLast = current === total - 1;
+    const btnNext = document.getElementById('btnNext');
+    btnNext.textContent = isLast ? '結果を見る ✓' : '次の問題 →';
+
+    // 次へボタン活性制御（三択は選択必須）
+    updateNextBtn();
+  }
+
+  function onChoiceChange(score) {
+    answers[current] = score;
+    updateNextBtn();
+  }
+
+  function updateNextBtn() {
+    const q = questions[current];
+    const btn = document.getElementById('btnNext');
+    if (q.type === 'choice') {
+      btn.disabled = (answers[current] === null);
+    } else {
+      btn.disabled = false;
+    }
+  }
+
+  // ────────────────────────────────────────────────────
+  //  ナビゲーション
+  // ────────────────────────────────────────────────────
+  function saveEssay() {
+    if (questions[current].type === 'essay') {
+      answers[current] = document.getElementById('essayInput').value;
+    }
+  }
+
+  function nextQ() {
+    saveEssay();
+    if (current < questions.length - 1) {
+      current++;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      showResult();
+    }
+  }
+
+  function prevQ() {
+    saveEssay();
+    if (current > 0) {
+      current--;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // ────────────────────────────────────────────────────
+  //  結果表示
+  // ────────────────────────────────────────────────────
+  function showResult() {
+    document.getElementById('quizCard').style.display = 'none';
+    const resultCard = document.getElementById('resultCard');
+    resultCard.style.display = 'block';
+
+    // 三択スコア集計
+    let choiceScore = 0;
+    for (let i = 0; i < 10; i++) {
+      if (answers[i] !== null) choiceScore += answers[i];
+    }
+
+    document.getElementById('choiceScore').innerHTML =
+      `${choiceScore}<span> / 50点</span>`;
+    setTimeout(() => {
+      document.getElementById('choiceBar').style.width = (choiceScore / 50 * 100) + '%';
+    }, 100);
+
+    // 記述式回答一覧
+    const essayList = document.getElementById('essayResultList');
+    essayList.innerHTML = '';
+    for (let i = 10; i < 15; i++) {
+      const q = questions[i];
+      const ans = answers[i] || '';
+      const div = document.createElement('div');
+      div.className = 'essay-result-item';
+      div.innerHTML = `
+        <div class="essay-q">Q${i + 1}</div>
+        <div class="essay-q-text">${q.text.replace(/\n/g, '<br>')}</div>
+        <div class="essay-ans ${ans.trim() === '' ? 'empty' : ''}">${ans.trim() === '' ? '（未回答）' : escapeHtml(ans)}</div>
+      `;
+      essayList.appendChild(div);
+    }
+
+    // 記述式採点入力欄
+    const manualRows = document.getElementById('manualScoreRows');
+    manualRows.innerHTML = '';
+    for (let i = 10; i < 15; i++) {
+      const row = document.createElement('div');
+      row.className = 'manual-score-row';
+      row.innerHTML = `
+        <label>Q${i + 1}の得点</label>
+        <input type="number" id="manual_${i}" min="0" max="10" placeholder="0〜10"
+          oninput="calcTotal(${choiceScore})">
+      `;
+      manualRows.appendChild(row);
+    }
+
+    calcTotal(choiceScore);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function calcTotal(choiceScore) {
+    let essayScore = 0;
+    let allFilled = true;
+    for (let i = 10; i < 15; i++) {
+      const el = document.getElementById(`manual_${i}`);
+      if (!el) continue;
+      const v = parseInt(el.value, 10);
+      if (isNaN(v)) { allFilled = false; continue; }
+      essayScore += Math.min(10, Math.max(0, v));
+    }
+
+    const total = choiceScore + essayScore;
+    document.getElementById('totalScore').innerHTML =
+      allFilled ? `${total}<span> / 100点</span>` : `—<span> / 100点</span>`;
+
+    if (allFilled) {
+      const label = getDeviation(total);
+      document.getElementById('deviationLabel').textContent = label;
+    } else {
+      document.getElementById('deviationLabel').textContent = '記述式の採点を入力すると合計が表示されます';
+    }
+  }
+
+  function getDeviation(score) {
+    if (score >= 85) return '恋愛偏差値70以上：恋愛の達人';
+    if (score >= 70) return '恋愛偏差値60台：成熟した恋愛観';
+    if (score >= 55) return '恋愛偏差値50台：バランス型';
+    if (score >= 40) return '恋愛偏差値40台：成長途中';
+    return '恋愛偏差値40未満：要トレーニング！';
+  }
+
+  function goHome() {
+    current = 0;
+    answers = Array(questions.length).fill(null);
+    document.getElementById('resultCard').style.display = 'none';
+    document.getElementById('quizCard').style.display = 'none';
+    document.getElementById('coverCard').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function retry() {
+    current = 0;
+    answers = Array(questions.length).fill(null);
+    document.getElementById('resultCard').style.display = 'none';
+    document.getElementById('quizCard').style.display = 'block';
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+  }
+
+  // ────────────────────────────────────────────────────
+  //  初期化
+  // ────────────────────────────────────────────────────
+  function startQuiz() {
+    document.getElementById('coverCard').style.display = 'none';
+    document.getElementById('quizCard').style.display = 'block';
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
