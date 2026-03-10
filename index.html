@@ -430,6 +430,187 @@
     }
     .btn-start:hover { box-shadow: 0 6px 22px rgba(192, 52, 106, 0.4); }
     .btn-start:active { transform: scale(0.97); }
+
+    /* ── 名前入力 ── */
+    .name-input-wrap {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .name-input-wrap label {
+      display: block;
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-bottom: 6px;
+    }
+    .name-input-wrap input[type="text"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #f0d6e0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: #333;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .name-input-wrap input[type="text"]:focus { border-color: #c0346a; }
+
+    .btn-history-link {
+      display: block;
+      text-align: center;
+      font-size: 0.82rem;
+      color: #c0346a;
+      margin-top: 16px;
+      cursor: pointer;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      font-family: inherit;
+      width: 100%;
+    }
+
+    /* ── 履歴画面 ── */
+    .history-card { display: none; }
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .history-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #c0346a;
+    }
+    .history-item {
+      border: 1.5px solid #f0d6e0;
+      border-radius: 14px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .history-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      cursor: pointer;
+      background: #fffafc;
+    }
+    .history-item-header:active { background: #fff0f5; }
+    .history-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #333;
+    }
+    .history-meta {
+      font-size: 0.75rem;
+      color: #bbb;
+      margin-top: 2px;
+    }
+    .history-score-badge {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #c0346a;
+      background: #ffe4ec;
+      padding: 4px 10px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .history-detail {
+      display: none;
+      padding: 12px 16px 16px;
+      border-top: 1px solid #f0d6e0;
+      background: #fff;
+    }
+    .history-detail-q {
+      font-size: 0.75rem;
+      color: #bbb;
+      margin-top: 10px;
+      margin-bottom: 3px;
+    }
+    .history-detail-a {
+      font-size: 0.85rem;
+      color: #444;
+      line-height: 1.5;
+      background: #fff8fb;
+      border-radius: 8px;
+      padding: 8px 10px;
+      white-space: pre-wrap;
+    }
+    .history-empty {
+      text-align: center;
+      color: #ccc;
+      font-size: 0.9rem;
+      padding: 40px 0;
+    }
+    .btn-delete-all {
+      background: none;
+      border: 1.5px solid #f0d6e0;
+      border-radius: 10px;
+      color: #ccc;
+      font-size: 0.78rem;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-delete-all:active { color: #e87aaa; border-color: #e87aaa; }
+
+    /* ── 保存・コピーボタン ── */
+    .result-action-wrap {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .btn-save {
+      flex: 1;
+      padding: 13px;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, #e87aaa, #c0346a);
+      color: #fff;
+      transition: transform 0.1s;
+    }
+    .btn-save:active { transform: scale(0.97); }
+    .btn-copy {
+      flex: 1;
+      padding: 13px;
+      border: 2px solid #f0d6e0;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      background: #fff;
+      color: #888;
+      transition: transform 0.1s;
+    }
+    .btn-copy:active { transform: scale(0.97); }
+
+    /* ── トースト ── */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #333;
+      color: #fff;
+      font-size: 0.85rem;
+      padding: 10px 20px;
+      border-radius: 99px;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 999;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -451,7 +632,7 @@
       <span class="cover-chip">全15問</span>
       <span class="cover-chip">三択10問</span>
       <span class="cover-chip">記述5問</span>
-      <span class="cover-chip">100点満点</span>
+      <span class="cover-chip">65点満点</span>
     </div>
 
     <div class="cover-rule">
@@ -464,7 +645,13 @@
       </ul>
     </div>
 
+    <div class="name-input-wrap">
+      <label for="playerName">ニックネーム（任意）</label>
+      <input type="text" id="playerName" placeholder="例：たろう" maxlength="20">
+    </div>
+
     <button class="btn-start" onclick="startQuiz()">診断スタート</button>
+    <button class="btn-history-link" onclick="showHistory()">履歴を見る</button>
   </div>
 
   <!-- 問題カード -->
@@ -510,21 +697,39 @@
     <div id="essayResultList"></div>
 
     <div class="manual-score-wrap">
-      <div class="manual-score-title">記述式の採点を入力（各10点満点）</div>
+      <div class="manual-score-title">記述式の採点を入力（各3点満点）</div>
       <div id="manualScoreRows"></div>
 
       <div class="total-score-wrap">
         <div class="total-label">合計スコア</div>
-        <div class="total-num" id="totalScore">— <span>/ 100点</span></div>
+        <div class="total-num" id="totalScore">— <span>/ 65点</span></div>
         <div class="deviation-label" id="deviationLabel"></div>
       </div>
     </div>
 
-    <div style="display:flex; gap:10px; margin-top:20px;">
+    <div class="result-action-wrap">
+      <button class="btn-save" onclick="saveResult()">この結果を保存</button>
+      <button class="btn-copy" onclick="copyResult()">結果をコピー</button>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:12px;">
       <button class="btn btn-secondary" style="flex:1" onclick="goHome()">ホームに戻る</button>
       <button class="btn btn-primary" style="flex:1" onclick="retry()">もう一度やる</button>
     </div>
   </div>
+
+  <!-- 履歴カード -->
+  <div class="card history-card" id="historyCard">
+    <div class="history-header">
+      <div class="history-title">受験履歴</div>
+      <button class="btn-delete-all" onclick="deleteHistory()">全削除</button>
+    </div>
+    <div id="historyList"></div>
+    <button class="btn btn-secondary" style="width:100%;margin-top:16px" onclick="hideHistory()">ホームに戻る</button>
+  </div>
+
+  <!-- トースト -->
+  <div class="toast" id="toast"></div>
 </div>
 
 <script>
@@ -579,11 +784,11 @@
     },
     {
       type: "choice",
-      text: "恋人が友達への愚痴を30分以上\n話し続けている。内心かなりうんざりしてきた。",
+      text: "彼女とダーツに行ったら、彼女がブルを連続で入れてきた。\nあなたはどんな言葉をかける？",
       options: [
-        { text: "「その話さっきも聞いたよ」とはっきり伝える", score: 2 },
-        { text: "最後まで聞いた後、「大変だったね。気分転換しない？」と提案する", score: 4 },
-        { text: "相槌だけ打ちながら、心はすでに別のことを考えている", score: 1 },
+        { text: "「ブル入れるのうまいってことは乳首攻めもうまいの？」", score: 1 },
+        { text: "「やばっ、めっちゃ上手じゃん！コツ教えてよ」", score: 2 },
+        { text: "「えっ天才じゃん！隠れた才能の持ち主じゃん、もっと見せて！」", score: 4 },
       ]
     },
     {
@@ -606,11 +811,11 @@
     },
     {
       type: "choice",
-      text: "遠距離恋愛中の恋人への\n既読スルーが最近増えてきた。",
+      text: "デート中に体調が悪くなって、泣く泣く帰ることになった。\n帰り道・帰宅後の行動として正しいのは？",
       options: [
-        { text: "「なんで返事してくれないの？」と立て続けにメッセージを送る", score: 1 },
-        { text: "「最近忙しい？元気にしてる？」と一言だけ送って、様子を見る", score: 4 },
-        { text: "こちらからの連絡をやめて、相手の出方をひたすら待つ", score: 2 },
+        { text: "申し訳なさそうにしながらもそのままおとなしく家に帰る", score: 2 },
+        { text: "帰る途中にポケモンセンターに寄って帰る", score: 1 },
+        { text: "帰宅後すぐに「今日はごめんね、また埋め合わせさせて」と連絡する", score: 4 },
       ]
     },
     {
@@ -622,6 +827,8 @@
         { text: "何も言わずにそっと距離を置いてみる", score: 3 },
       ]
     },
+
+    
     {
       type: "essay",
       text: "3年付き合った恋人から突然「好きな人ができた」と告げられました。\nあなたはその場でどんな言葉をかけますか？"
@@ -761,6 +968,7 @@
       if (answers[i] !== null) choiceScore += answers[i];
     }
 
+    lastChoiceScore = choiceScore;
     document.getElementById('choiceScore').innerHTML =
       `${choiceScore}<span> / 50点</span>`;
     setTimeout(() => {
@@ -791,7 +999,7 @@
       row.className = 'manual-score-row';
       row.innerHTML = `
         <label>Q${i + 1}の得点</label>
-        <input type="number" id="manual_${i}" min="0" max="10" placeholder="0〜10"
+        <input type="number" id="manual_${i}" min="0" max="3" placeholder="0〜3"
           oninput="calcTotal(${choiceScore})">
       `;
       manualRows.appendChild(row);
@@ -809,12 +1017,12 @@
       if (!el) continue;
       const v = parseInt(el.value, 10);
       if (isNaN(v)) { allFilled = false; continue; }
-      essayScore += Math.min(10, Math.max(0, v));
+      essayScore += Math.min(3, Math.max(0, v));
     }
 
     const total = choiceScore + essayScore;
     document.getElementById('totalScore').innerHTML =
-      allFilled ? `${total}<span> / 100点</span>` : `—<span> / 100点</span>`;
+      allFilled ? `${total}<span> / 65点</span>` : `—<span> / 65点</span>`;
 
     if (allFilled) {
       const label = getDeviation(total);
@@ -825,11 +1033,141 @@
   }
 
   function getDeviation(score) {
-    if (score >= 85) return '恋愛偏差値70以上：恋愛の達人';
-    if (score >= 70) return '恋愛偏差値60台：成熟した恋愛観';
-    if (score >= 55) return '恋愛偏差値50台：バランス型';
-    if (score >= 40) return '恋愛偏差値40台：成長途中';
+    if (score >= 55) return '恋愛偏差値70以上：恋愛の達人';
+    if (score >= 45) return '恋愛偏差値60台：成熟した恋愛観';
+    if (score >= 36) return '恋愛偏差値50台：バランス型';
+    if (score >= 26) return '恋愛偏差値40台：成長途中';
     return '恋愛偏差値40未満：要トレーニング！';
+  }
+
+  // ────────────────────────────────────────────────────
+  //  履歴・保存・コピー
+  // ────────────────────────────────────────────────────
+
+  let lastChoiceScore = 0;
+
+  function saveResult() {
+    const name = document.getElementById('playerName').value.trim() || '匿名';
+    const choiceScore = lastChoiceScore;
+    let totalScore = null;
+    let allFilled = true;
+    let essayScore = 0;
+    for (let i = 10; i < 15; i++) {
+      const el = document.getElementById(`manual_${i}`);
+      if (!el || el.value === '') { allFilled = false; break; }
+      essayScore += Math.min(3, Math.max(0, parseInt(el.value, 10) || 0));
+    }
+    if (allFilled) totalScore = choiceScore + essayScore;
+
+    const essayAnswers = [];
+    for (let i = 10; i < 15; i++) {
+      essayAnswers.push(answers[i] || '');
+    }
+
+    const record = {
+      name,
+      choiceScore,
+      totalScore,
+      date: new Date().toLocaleString('ja-JP'),
+      essayAnswers,
+    };
+
+    const history = JSON.parse(localStorage.getItem('loveQuizHistory') || '[]');
+    history.unshift(record);
+    localStorage.setItem('loveQuizHistory', JSON.stringify(history));
+    showToast('保存しました');
+  }
+
+  function copyResult() {
+    const name = document.getElementById('playerName').value.trim() || '匿名';
+    const choiceScore = lastChoiceScore;
+    let totalText = '—（採点待ち）';
+    let allFilled = true;
+    let essayScore = 0;
+    for (let i = 10; i < 15; i++) {
+      const el = document.getElementById(`manual_${i}`);
+      if (!el || el.value === '') { allFilled = false; break; }
+      essayScore += Math.min(3, Math.max(0, parseInt(el.value, 10) || 0));
+    }
+    if (allFilled) {
+      const total = choiceScore + essayScore;
+      totalText = `${total} / 65点（${getDeviation(total)}）`;
+    }
+
+    let text = `【恋愛偏差値チェック結果】\n名前：${name}\n三択：${choiceScore} / 50点\n合計：${totalText}\n\n--- 記述回答 ---\n`;
+    for (let i = 10; i < 15; i++) {
+      text += `Q${i + 1}：${answers[i] || '（未回答）'}\n\n`;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('コピーしました！LINEに貼り付けてね');
+    }).catch(() => {
+      showToast('コピーに失敗しました');
+    });
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  function showHistory() {
+    document.getElementById('coverCard').style.display = 'none';
+    document.getElementById('historyCard').style.display = 'block';
+    loadHistory();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function hideHistory() {
+    document.getElementById('historyCard').style.display = 'none';
+    document.getElementById('coverCard').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function loadHistory() {
+    const history = JSON.parse(localStorage.getItem('loveQuizHistory') || '[]');
+    const list = document.getElementById('historyList');
+    list.innerHTML = '';
+
+    if (history.length === 0) {
+      list.innerHTML = '<div class="history-empty">まだ履歴がありません</div>';
+      return;
+    }
+
+    history.forEach((rec, idx) => {
+      const totalText = rec.totalScore !== null ? `合計 ${rec.totalScore}/65点` : `三択 ${rec.choiceScore}/50点`;
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML = `
+        <div class="history-item-header" onclick="toggleDetail(${idx})">
+          <div>
+            <div class="history-name">${escapeHtml(rec.name)}</div>
+            <div class="history-meta">${rec.date}</div>
+          </div>
+          <div class="history-score-badge">${totalText}</div>
+        </div>
+        <div class="history-detail" id="detail_${idx}">
+          ${rec.essayAnswers.map((ans, i) => `
+            <div class="history-detail-q">Q${i + 11}の回答</div>
+            <div class="history-detail-a">${ans.trim() ? escapeHtml(ans) : '（未回答）'}</div>
+          `).join('')}
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function toggleDetail(idx) {
+    const el = document.getElementById(`detail_${idx}`);
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function deleteHistory() {
+    if (!confirm('全ての履歴を削除しますか？')) return;
+    localStorage.removeItem('loveQuizHistory');
+    loadHistory();
   }
 
   function goHome() {
